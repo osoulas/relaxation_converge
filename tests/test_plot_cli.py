@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from relaxation_converge import __version__, plot_convergence, read_outcar
+from relaxation_converge import (
+    __version__,
+    plot_convergence,
+    read_outcar,
+    terminal_plot,
+)
 from relaxation_converge.__main__ import build_parser, main
 
 from .conftest import OutcarFactory
@@ -42,11 +47,12 @@ def test_plot_single_step_without_criteria(write_outcar: OutcarFactory) -> None:
 
 
 def test_parser_defaults() -> None:
-    """The CLI defaults to ./OUTCAR and convergence.png."""
+    """The CLI defaults to ./OUTCAR and does not save an image."""
     args = build_parser().parse_args([])
     assert args.outcar == Path("OUTCAR")
-    assert args.output == Path("convergence.png")
+    assert args.save is None
     assert args.poscar is None
+    assert args.height == 60
 
 
 def test_cli_prints_summary_and_saves_plot(
@@ -54,14 +60,27 @@ def test_cli_prints_summary_and_saves_plot(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """The CLI prints a table, the convergence verdict and writes the image."""
+    """--save FILE writes the image as well as the terminal output."""
     output = tmp_path / "out.png"
-    assert main([str(write_outcar()), "-o", str(output)]) == 0
+    assert main([str(write_outcar()), "--save", str(output)]) == 0
 
     out = capsys.readouterr().out
     assert "Converged: yes" in out
     assert "-10.410000" in out
+    assert "Ionic step" in out
     assert output.stat().st_size > 0
+
+
+def test_save_without_file_uses_default_name(
+    write_outcar: OutcarFactory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A bare -s saves convergence.png in the working directory."""
+    outcar = write_outcar()
+    monkeypatch.chdir(tmp_path)
+    assert main([str(outcar), "-s"]) == 0
+    assert (tmp_path / "convergence.png").exists()
 
 
 def test_cli_accepts_poscar_mask(
@@ -75,6 +94,42 @@ def test_cli_accepts_poscar_mask(
         "c\n1.0\n1 0 0\n0 1 0\n0 0 1\nSi\n2\nSelective dynamics\nDirect\n"
         "0 0 0 F F F\n0.5 0.5 0.5 T T T\n"
     )
-    output = tmp_path / "out.png"
-    assert main([str(write_outcar()), "-p", str(poscar), "-o", str(output)]) == 0
+    assert main([str(write_outcar()), "-p", str(poscar)]) == 0
     assert "0.0050" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(("ediffg", "color"), [("-.2E-01", True), ("0.1E-02", False)])
+def test_terminal_plot_renders_panels(
+    write_outcar: OutcarFactory, ediffg: str, color: bool
+) -> None:
+    """The text plot shows all three panels and the EDIFFG threshold."""
+    relax = read_outcar(write_outcar(ediffg=ediffg))
+    text = terminal_plot(relax, width=80, height=45, color=color)
+
+    assert "E_final = -10.410000 eV" in text
+    assert "EDIFFG" in text
+    assert "Ionic step" in text
+    assert ("\x1b[" in text) is color
+
+
+def test_terminal_plot_single_step(write_outcar: OutcarFactory) -> None:
+    """A one-step run without EDIFFG still renders."""
+    relax = read_outcar(write_outcar(steps=[(0.1, 0.1, -1.0)], header=" NIONS = 2\n"))
+    assert "EDIFFG" not in terminal_plot(relax, width=60, height=30, color=False)
+
+
+def test_cli_plots_in_terminal_by_default(
+    write_outcar: OutcarFactory,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Without --save the plot is printed and no image is written."""
+    outcar = write_outcar()
+    monkeypatch.chdir(tmp_path)
+    assert main([str(outcar), "--no-color", "--height", "75"]) == 0
+
+    out = capsys.readouterr().out
+    assert "Ionic step" in out
+    assert len(out.splitlines()) >= 75
+    assert not list(tmp_path.glob("*.png"))

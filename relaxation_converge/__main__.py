@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .parse import read_outcar, read_selective_dynamics
 from .plot import plot_convergence
+from .terminal import terminal_plot
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,11 +24,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="POSCAR/CONTCAR whose selective dynamics flags exclude fixed atoms",
     )
     parser.add_argument(
-        "-o",
-        "--output",
+        "-s",
+        "--save",
+        nargs="?",
+        const=Path("convergence.png"),
         type=Path,
-        default=Path("convergence.png"),
-        help="output image (default: convergence.png)",
+        metavar="FILE",
+        help="also save the plot as an image (default FILE: convergence.png)",
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        default=60,
+        help="terminal plot height in lines (default: 60)",
+    )
+    parser.add_argument(
+        "--no-color", action="store_true", help="plain text terminal plot"
     )
     return parser
 
@@ -36,7 +48,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the command-line interface."""
     args = build_parser().parse_args(argv)
     outcar: Path = args.outcar
-    output: Path = args.output
+    save: Path | None = args.save
 
     relaxation = read_outcar(outcar)
     mask = read_selective_dynamics(args.poscar) if args.poscar else None
@@ -52,8 +64,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     status = {True: "yes", False: "no", None: "unknown (EDIFFG not found)"}
     print(f"Converged: {status[relaxation.is_converged(mask)]}")
 
-    plot_convergence(relaxation, mask, title=str(outcar)).savefig(output, dpi=150)
-    print(f"Saved {output}")
+    print(terminal_plot(relaxation, mask, height=args.height, color=not args.no_color))
+    if save is not None:
+        plot_convergence(relaxation, mask, title=str(outcar)).savefig(save, dpi=150)
+        print(f"Saved {save}")
     return 0
 
 
