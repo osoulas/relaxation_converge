@@ -1,112 +1,123 @@
 # relaxation-converge
 
-A compact starting point for a modern, typed Python package. It uses
-setuptools and `pyproject.toml` packaging, Ruff, mypy, pytest with full branch
-coverage, pre-commit, and GitHub Actions.
+`relaxation-converge` reads a VASP `OUTCAR` from an ionic relaxation and
+summarizes how the energy and forces change at each step. It reports whether
+the final step meets the `EDIFFG` criterion when that setting is present, and
+plots the convergence in your terminal. You can also save a publication-ready
+PNG plot.
 
-The example package exposes a tiny NumPy API and a command-line entry point so
-the template works end to end before you replace the sample code.
+## Install
 
-## Requirements
-
-- Python 3.14 or newer
-- pip 25.1 or newer (for dependency groups)
-
-## Quick start
-
-Create an isolated environment and install the package with its development
-tools:
+Requires Python 3.14 or newer.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m pip install relaxation-converge
+```
+
+To install from a local checkout with development tools, create and activate a
+virtual environment, then run:
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install --group dev -e .
 ```
 
-On Windows PowerShell, activate the environment with
-`.venv\Scripts\Activate.ps1` instead.
+## Use the command line
 
-Run the example:
+Run the command in a directory containing `OUTCAR`:
 
 ```bash
-relaxation-converge Ada
-python -m relaxation_converge Ada
+relaxation-converge
 ```
 
-Or use the library:
+Or provide the path explicitly:
+
+```bash
+relaxation-converge path/to/OUTCAR
+```
+
+The command prints a per-step table with energy, energy change, and maximum
+atomic force, followed by the convergence status and a three-panel terminal
+plot. To save the plot as `convergence.png` as well, use `--save`:
+
+```bash
+relaxation-converge OUTCAR --save
+```
+
+Choose another output path with `--save FILE`. Useful options:
+
+| Option | Purpose |
+| --- | --- |
+| `-p`, `--poscar FILE` | Read `POSCAR` or `CONTCAR` selective-dynamics flags and ignore fixed Cartesian components when calculating forces. |
+| `-s`, `--save [FILE]` | Save a PNG plot; defaults to `convergence.png` when no file is given. |
+| `--height LINES` | Set the terminal plot height (default: 60). |
+| `--no-color` | Print a plain-text plot, useful when piping output. |
+
+For example, analyze a calculation with constrained atoms and save the figure:
+
+```bash
+relaxation-converge run/OUTCAR --poscar run/CONTCAR --save run/convergence.png
+```
+
+The plot shows energy relative to the final step, absolute energy change, and
+maximum and RMS atomic force. If `EDIFFG` is set, its energy or force threshold
+appears on the corresponding panel. A positive `EDIFFG` is treated as an
+energy-change criterion; a negative value is treated as a force criterion. If
+`EDIFFG` is absent, convergence is reported as unknown.
+
+## Use as a Python library
 
 ```python
-from relaxation_converge import line, print_hello
+from relaxation_converge import (
+    plot_convergence,
+    read_outcar,
+    read_selective_dynamics,
+)
 
-print_hello("Ada")
-samples = line(-1.0, 1.0, num=5)
-print(samples)
+relaxation = read_outcar("OUTCAR")
+mask = read_selective_dynamics("CONTCAR")
+
+print(f"Ionic steps: {relaxation.nsteps}")
+print(f"Converged: {relaxation.is_converged(mask)}")
+print(f"Final maximum force: {relaxation.max_forces(mask)[-1]:.4f} eV/Å")
+
+figure = plot_convergence(relaxation, mask, title="VASP relaxation")
+figure.savefig("convergence.png", dpi=150)
 ```
+
+`read_outcar` returns a `Relaxation` object containing the per-step free
+energies, sigma-to-zero energies, and Cartesian forces. It also reads `EDIFF`
+and `EDIFFG` when present. Incomplete final ionic steps are omitted so each
+returned step has both energy and force data.
 
 ## Development
 
-Run the complete local checks:
+Install the development dependencies from the repository root:
+
+```bash
+python -m pip install --group dev -e .
+```
+
+Run checks with:
 
 ```bash
 ruff check .
 ruff format --check .
 mypy
 pytest
+```
+
+To build and check a release distribution:
+
+```bash
 python -m build
 python -m twine check dist/*
 ```
 
-Ruff can apply safe lint and formatting changes with:
+An optional Conda environment is defined in [`build_tools/environment.yml`](build_tools/environment.yml).
 
-```bash
-ruff check --fix .
-ruff format .
-```
-
-Install the Git hooks once, then pre-commit will run the fast checks before
-each commit:
-
-```bash
-pre-commit install
-pre-commit run --all-files
-```
-
-If you prefer Conda, `build_tools/environment.yml` creates the base environment:
-
-```bash
-conda env create -f build_tools/environment.yml
-conda activate relaxation-converge
-python -m pip install --group dev -e .
-```
-
-## Project layout
-
-```text
-.
-├── .github/workflows/ci.yml   # automated quality and packaging checks
-├── build_tools/               # optional Conda setup
-├── relaxation_converge/           # installable package
-├── tests/                     # behavior-focused tests
-└── pyproject.toml              # project metadata and tool configuration
-```
-
-## Use this template
-
-After creating a repository from this template:
-
-1. Rename the `relaxation-converge` distribution, `relaxation_converge` import package,
-   and console command.
-2. Update the description, author, repository URLs, and license metadata.
-3. Choose and test the Python versions your project supports.
-4. Replace the example API and tests while keeping the quality gates green.
-5. Set a real release version and configure trusted publishing only when the
-   package is ready to publish.
-
-## License
+## License and credits
 
 Released under the [MIT License](LICENSE).
 
-## Credits
-
-Made by Oskar, George and Jacob
+Made by Oskar, George, and Jacob.
