@@ -106,3 +106,7 @@ After creating a repository from this template:
 ## License
 
 Released under the [MIT License](LICENSE).
+
+## Credits
+
+Made by Oskar, George and Jacob
