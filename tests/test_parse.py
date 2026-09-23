@@ -57,7 +57,8 @@ def test_truncated_force_block_stops_reading(write_outcar: OutcarFactory) -> Non
 
 def test_truncated_energy_block_stops_reading(write_outcar: OutcarFactory) -> None:
     """An energy block cut off mid-write ends parsing cleanly."""
-    tail = FORCES.format(f0=1.0, f1=1.0) + "  FREE ENERGIE OF THE ION-ELECTRON\n"
+    header = "  FREE ENERGIE OF THE ION-ELECTRON SYSTEM (eV)\n"
+    tail = FORCES.format(f0=1.0, f1=1.0) + header
     assert read_outcar(write_outcar(tail=tail)).nsteps == 3
 
 
