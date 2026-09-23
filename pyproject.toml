@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "template-python"
+version = "0.0.0"
+description = "A modern, typed Python package template."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Louie Slocombe", email = "louies@hotmail.co.uk" },
+]
+keywords = ["python", "template"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+dependencies = [
+  "numpy>=2.5.3",
+]
+
+[project.scripts]
+template-python = "template_python.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/LouieSlocombe/template_python"
+Issues = "https://github.com/LouieSlocombe/template_python/issues"
+Repository = "https://github.com/LouieSlocombe/template_python"
+
+[dependency-groups]
+dev = [
+  "build>=1.6.1",
+  "mypy>=2.3.1",
+  "pre-commit>=4.6.2",
+  "pytest>=9.1.1",
+  "pytest-cov>=7.1.0",
+  "ruff>=0.16.8",
+  "twine>=7.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["template_python", "template_python.*"]
+
+[tool.setuptools.package-data]
+template_python = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers --cov=template_python --cov-report=term-missing"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["template_python"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+exclude_also = [
+  "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+line-length = 88
+src = ["."]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["B", "E4", "E7", "E9", "F", "I", "RUF", "SIM", "UP"]
+
+[tool.mypy]
+files = ["template_python", "tests"]
+python_version = "3.14"
+pretty = true
+show_error_codes = true
+strict = true
+warn_unreachable = true
