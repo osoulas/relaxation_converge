@@ -67,9 +67,7 @@ def plot_convergence(
         ax_de.legend(loc="upper right")
     ax_de.set_ylabel(r"$|\Delta E|$ (eV)")
 
-    ax_f.semilogy(
-        steps, relaxation.max_forces(mask), "o-", ms=3, label="Maximum force"
-    )
+    ax_f.semilogy(steps, relaxation.max_forces(mask), "o-", ms=3, label="Maximum force")
     if ediffg is not None and ediffg < 0:
         ax_f.axhline(
             -ediffg,
