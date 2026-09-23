@@ -47,32 +47,33 @@ def terminal_plot(
     plt.theme("pro" if color else "clear")
 
     plt.subplot(1, 1)
-    plt.plot(steps, (energies - energies[-1]).tolist(), marker="braille")
+    plt.plot(
+        steps,
+        (energies - energies[-1]).tolist(),
+        marker="braille",
+        label="E - E_final",
+    )
     plt.title(f"E - E_final (eV)    E_final = {energies[-1]:.6f} eV")
 
     plt.subplot(2, 1)
     title = "|dE| (eV, log)"
     if changes.size:
         series = [changes]
-        plt.plot(steps[1:], _log10(changes), marker="braille")
+        plt.plot(steps[1:], _log10(changes), marker="braille", label="|dE|")
         if ediffg is not None and ediffg > 0:
             series.append(np.array([ediffg]))
-            _threshold(steps[1:], ediffg)
-            title += f"    red: EDIFFG = {ediffg:g}"
+            _threshold(steps[1:], ediffg, label=f"EDIFFG = {ediffg:g} eV")
         _log_ticks(np.concatenate(series))
     plt.title(title)
 
     plt.subplot(3, 1)
     fmax = relaxation.max_forces(mask)
-    frms = relaxation.rms_forces(mask)
-    series = [fmax, frms]
-    plt.plot(steps, _log10(fmax), marker="braille", label="max")
-    plt.plot(steps, _log10(frms), marker="braille", label="RMS")
+    series = [fmax]
+    plt.plot(steps, _log10(fmax), marker="braille", label="Maximum force")
     title = "Force (eV/A, log)"
     if ediffg is not None and ediffg < 0:
         series.append(np.array([-ediffg]))
-        _threshold(steps, -ediffg)
-        title += f"    red: |EDIFFG| = {-ediffg:g}"
+        _threshold(steps, -ediffg, label=f"|EDIFFG| = {-ediffg:g} eV/A")
     _log_ticks(np.concatenate(series))
     plt.title(title)
     plt.xlabel("Ionic step")
@@ -87,9 +88,15 @@ def _log10(values: npt.NDArray[np.float64]) -> list[float]:
     return logs
 
 
-def _threshold(steps: list[int], value: float) -> None:
+def _threshold(steps: list[int], value: float, label: str) -> None:
     """Draw a horizontal threshold line on the current log panel."""
-    plt.plot(steps, [math.log10(value)] * len(steps), color="red", marker="-")
+    plt.plot(
+        steps,
+        [math.log10(value)] * len(steps),
+        color="red",
+        marker="-",
+        label=label,
+    )
 
 
 def _log_ticks(values: npt.NDArray[np.float64]) -> None:

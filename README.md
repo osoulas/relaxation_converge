@@ -60,7 +60,7 @@ relaxation-converge run/OUTCAR --poscar run/CONTCAR --save run/convergence.png
 ```
 
 The plot shows energy relative to the final step, absolute energy change, and
-maximum and RMS atomic force. If `EDIFFG` is set, its energy or force threshold
+maximum atomic force. If `EDIFFG` is set, its energy or force threshold
 appears on the corresponding panel. A positive `EDIFFG` is treated as an
 energy-change criterion; a negative value is treated as a force criterion. If
 `EDIFFG` is absent, convergence is reported as unknown.
