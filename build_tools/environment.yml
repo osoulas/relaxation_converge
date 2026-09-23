@@ -1,4 +1,4 @@
-name: template-python
+name: relaxation-converge
 
 channels:
   - conda-forge

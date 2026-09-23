@@ -1,4 +1,4 @@
-# template-python
+# relaxation-converge
 
 A compact starting point for a modern, typed Python package. It uses
 setuptools and `pyproject.toml` packaging, Ruff, mypy, pytest with full branch
@@ -30,14 +30,14 @@ On Windows PowerShell, activate the environment with
 Run the example:
 
 ```bash
-template-python Ada
-python -m template_python Ada
+relaxation-converge Ada
+python -m relaxation_converge Ada
 ```
 
 Or use the library:
 
 ```python
-from template_python import line, print_hello
+from relaxation_converge import line, print_hello
 
 print_hello("Ada")
 samples = line(-1.0, 1.0, num=5)
@@ -76,7 +76,7 @@ If you prefer Conda, `build_tools/environment.yml` creates the base environment:
 
 ```bash
 conda env create -f build_tools/environment.yml
-conda activate template-python
+conda activate relaxation-converge
 python -m pip install --group dev -e .
 ```
 
@@ -86,7 +86,7 @@ python -m pip install --group dev -e .
 .
 ├── .github/workflows/ci.yml   # automated quality and packaging checks
 ├── build_tools/               # optional Conda setup
-├── template_python/           # installable package
+├── relaxation_converge/           # installable package
 ├── tests/                     # behavior-focused tests
 └── pyproject.toml              # project metadata and tool configuration
 ```
@@ -95,7 +95,7 @@ python -m pip install --group dev -e .
 
 After creating a repository from this template:
 
-1. Rename the `template-python` distribution, `template_python` import package,
+1. Rename the `relaxation-converge` distribution, `relaxation_converge` import package,
    and console command.
 2. Update the description, author, repository URLs, and license metadata.
 3. Choose and test the Python versions your project supports.
