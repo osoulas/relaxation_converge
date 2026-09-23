@@ -52,4 +52,4 @@ jobs:
       - name: Smoke test the wheel
         run: |
           python -m pip install --force-reinstall --no-deps dist/*.whl
-          python -m template_python Codex
+          python -m relaxation_converge --help
