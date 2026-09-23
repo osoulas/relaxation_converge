@@ -23,10 +23,12 @@ def test_plot_has_three_panels_and_threshold(
     """The figure shows energy, energy change and force panels."""
     fig = plot_convergence(read_outcar(write_outcar(ediffg=ediffg)), title="run")
 
-    ax_e, ax_de, ax_f = fig.axes
+    _, ax_de, ax_f = fig.axes
     assert ax_de.get_yscale() == ax_f.get_yscale() == "log"
     threshold_axis = ax_f if ediffg.startswith("-") else ax_de
-    labels = [t.get_text() for t in threshold_axis.get_legend().get_texts()]
+    legend = threshold_axis.get_legend()
+    assert legend is not None
+    labels = [t.get_text() for t in legend.get_texts()]
     assert any("EDIFFG" in label for label in labels)
     assert fig.get_suptitle() == "run"
 

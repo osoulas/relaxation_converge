@@ -173,4 +173,5 @@ def read_selective_dynamics(path: StrPath) -> npt.NDArray[np.bool_] | None:
         return None
     start = row + 2
     flags = [line.split()[3:6] for line in lines[start : start + nions]]
-    return np.array(flags, dtype=str) == "T"
+    mask: npt.NDArray[np.bool_] = np.array(flags, dtype=str) == "T"
+    return mask
