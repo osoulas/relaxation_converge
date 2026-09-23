@@ -36,3 +36,6 @@ htmlcov/
 
 # Notebooks
 .ipynb_checkpoints/
+
+# Other
+POTCAR
