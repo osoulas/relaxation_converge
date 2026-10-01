@@ -24,7 +24,7 @@ classifiers = [
 dependencies = [
   "numpy>=2.5.3",
   "matplotlib>=3.10",
-  "plotext>=5.3,<6",
+  "plotext>=5.3,<7",
 ]
 
 [project.scripts]
